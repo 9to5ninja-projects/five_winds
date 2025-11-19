@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Five Winds - Character Selection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #ff00ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section h2 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+        
+        .character-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .character-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .character-card:hover {
+            border-color: #00d4ff;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .character-card h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        .character-stats {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .character-stats div {
+            margin: 5px 0;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #00ff88, #00cc66);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+        
+        .create-form {
+            display: none;
+        }
+        
+        .create-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+        
+        .clan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .clan-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .clan-card:hover,
+        .clan-card.selected {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .clan-card h4 {
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        
+        .clan-card .faction {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .clan-card .description {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .role-list {
+            margin-top: 15px;
+        }
+        
+        .role-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .role-item:hover,
+        .role-item.selected {
+            border-color: #ff00ea;
+            background: rgba(255, 0, 234, 0.1);
+        }
+        
+        .role-item strong {
+            color: #ff00ea;
+        }
+        
+        .error {
+            color: #ff4444;
+            margin-top: 10px;
+        }
+        
+        .success {
+            color: #00ff88;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ Five Winds ⚔️</h1>
+        <p class="subtitle">Choose your path, master your destiny</p>
+        
+        <div class="section">
+            <h2>Your Characters</h2>
+            <div id="characterList" class="character-list">
+                <div class="loading">Loading characters...</div>
+            </div>
+            <button class="btn btn-success" onclick="showCreateForm()">Create New Character</button>
+        </div>
+        
+        <div class="section create-form" id="createForm">
+            <h2>Create New Character</h2>
+            <form id="newCharacterForm">
+                <div class="form-group">
+                    <label for="characterName">Character Name</label>
+                    <input type="text" id="characterName" placeholder="Enter your character's name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Choose Your Clan</label>
+                    <div id="clanGrid" class="clan-grid">
+                        <div class="loading">Loading clans...</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Choose Your Role</label>
+                    <div id="roleList" class="role-list">
+                        <p style="color: #888;">Select a clan first</p>
+                    </div>
+                </div>
+                
+                <div id="createMessage"></div>
+                
+                <button type="submit" class="btn btn-primary">Create Character</button>
+                <button type="button" class="btn" onclick="hideCreateForm()" style="background: #555; color: white; margin-left: 10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let clans = [];
+        let selectedClanId = null;
+        let selectedRoleId = null;
+        let characters = [];
+        
+        // Load clans on page load
+        async function loadClans() {
+            try {
+                const response = await fetch('/api/clans');
+                clans = await response.json();
+                renderClans();
+            } catch (error) {
+                console.error('Error loading clans:', error);
+            }
+        }
+        
+        // Load characters on page load
+        async function loadCharacters() {
+            try {
+                const response = await fetch('/api/characters');
+                if (response.ok) {
+                    characters = await response.json();
+                    renderCharacters();
+                } else {
+                    document.getElementById('characterList').innerHTML = '<p style="color: #888;">No characters yet. Create your first one!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading characters:', error);
+                document.getElementById('characterList').innerHTML = '<p style="color: #888;">No characters yet. Create your first one!</p>';
+            }
+        }
+        
+        function renderCharacters() {
+            const list = document.getElementById('characterList');
+            if (characters.length === 0) {
+                list.innerHTML = '<p style="color: #888;">No characters yet. Create your first one!</p>';
+                return;
+            }
+            
+            list.innerHTML = characters.map(char => `
+                <div class="character-card" onclick="selectCharacter(${char.id})">
+                    <h3>${char.name}</h3>
+                    <div class="character-stats">
+                        <div>Level: ${char.level}.${char.sub_level}</div>
+                        <div>HP: ${char.hp}/${char.max_hp}</div>
+                        <div>Chi: ${char.chi}/${char.max_chi}</div>
+                        <div>Body/Spirit/Flow: ${char.body}/${char.spirit}/${char.flow}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderClans() {
+            const grid = document.getElementById('clanGrid');
+            grid.innerHTML = clans.map(clan => `
+                <div class="clan-card" onclick="selectClan(${clan.id})">
+                    <h4>${clan.name}</h4>
+                    <div class="faction">${clan.faction === 'imperial' ? '⚔️ Imperial' : '🔥 Free Clan'}</div>
+                    <div class="description">${clan.description}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectClan(clanId) {
+            selectedClanId = clanId;
+            selectedRoleId = null;
+            
+            // Update visual selection
+            document.querySelectorAll('.clan-card').forEach(card => card.classList.remove('selected'));
+            event.target.closest('.clan-card').classList.add('selected');
+            
+            // Show roles for this clan
+            const clan = clans.find(c => c.id === clanId);
+            renderRoles(clan.roles);
+        }
+        
+        function renderRoles(roles) {
+            const list = document.getElementById('roleList');
+            list.innerHTML = roles.map(role => `
+                <div class="role-item" onclick="selectRole(${role.id})">
+                    <strong>${role.name}</strong> - ${role.archetype}
+                    <div style="font-size: 0.85em; color: #888; margin-top: 5px;">${role.description}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectRole(roleId) {
+            selectedRoleId = roleId;
+            document.querySelectorAll('.role-item').forEach(item => item.classList.remove('selected'));
+            event.target.closest('.role-item').classList.add('selected');
+        }
+        
+        function showCreateForm() {
+            document.getElementById('createForm').classList.add('active');
+            document.getElementById('createForm').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function hideCreateForm() {
+            document.getElementById('createForm').classList.remove('active');
+            document.getElementById('newCharacterForm').reset();
+            selectedClanId = null;
+            selectedRoleId = null;
+            document.getElementById('createMessage').innerHTML = '';
+            document.querySelectorAll('.clan-card, .role-item').forEach(el => el.classList.remove('selected'));
+        }
+        
+        async function selectCharacter(charId) {
+            // Navigate to game view
+            window.location.href = `/game?character=${charId}`;
+        }
+        
+        document.getElementById('newCharacterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('characterName').value.trim();
+            const messageDiv = document.getElementById('createMessage');
+            
+            if (!selectedClanId || !selectedRoleId) {
+                messageDiv.innerHTML = '<p class="error">Please select both a clan and a role</p>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/character/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        clan_id: selectedClanId,
+                        role_id: selectedRoleId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    messageDiv.innerHTML = `<p class="success">Character created successfully!</p>`;
+                    setTimeout(() => {
+                        window.location.href = `/game?character=${data.character.id}`;
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = `<p class="error">${data.error}</p>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<p class="error">Error creating character: ${error.message}</p>`;
+            }
+        });
+        
+        // Initialize
+        loadClans();
+        loadCharacters();
+    </script>
+</body>
+</html>

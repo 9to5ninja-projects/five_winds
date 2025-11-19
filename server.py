@@ -15,6 +15,14 @@ active_combats = {}
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/game')
+def game():
+    return render_template('game.html')
+
+@app.route('/combat')
+def combat_page():
     return render_template('combat.html')
 
 @app.route('/api/clans', methods=['GET'])
@@ -79,6 +87,94 @@ def create_character():
     return jsonify({
         'message': 'Character created successfully',
         'character': char.to_dict()
+    })
+
+@app.route('/api/characters', methods=['GET'])
+def get_characters():
+    """Get all characters for current user (simplified - no auth yet)."""
+    characters = Character.query.all()
+    result = [{
+        'id': c.id,
+        'name': c.name,
+        'level': c.level,
+        'sub_level': c.sub_level,
+        'hp': c.current_hp,
+        'max_hp': c.max_hp,
+        'chi': c.current_chi,
+        'max_chi': c.max_chi,
+        'body': c.body,
+        'spirit': c.spirit,
+        'flow': c.flow
+    } for c in characters]
+    return jsonify(result)
+
+@app.route('/api/character/<int:char_id>', methods=['GET'])
+def get_character(char_id):
+    """Get a single character's full details."""
+    char = Character.query.get_or_404(char_id)
+    
+    return jsonify({
+        'id': char.id,
+        'name': char.name,
+        'clan_id': char.clan_id,
+        'role_id': char.role_id,
+        'level': char.level,
+        'sub_level': char.sub_level,
+        'tier': char.tier,
+        'xp': char.experience,
+        'hp': char.current_hp,
+        'max_hp': char.max_hp,
+        'chi': char.current_chi,
+        'max_chi': char.max_chi,
+        'body': char.body,
+        'spirit': char.spirit,
+        'flow': char.flow,
+        'defense': char.defense,
+        'gold': char.gold,
+        'current_zone_id': char.current_zone_id
+    })
+
+@app.route('/api/zone/<int:zone_id>', methods=['GET'])
+def get_zone(zone_id):
+    """Get zone information."""
+    zone = Zone.query.get_or_404(zone_id)
+    
+    return jsonify({
+        'id': zone.id,
+        'name': zone.name,
+        'description': zone.description,
+        'zone_type': zone.zone_type,
+        'min_level': zone.min_level,
+        'max_level': zone.max_level
+    })
+
+@app.route('/api/meditate', methods=['POST'])
+def meditate():
+    """Restore HP and Chi through meditation."""
+    data = request.json
+    char_id = data.get('character_id')
+    
+    char = Character.query.get_or_404(char_id)
+    
+    # Restore based on spirit stat
+    hp_restore = min(char.spirit * 10, char.max_hp - char.current_hp)
+    chi_restore = min(char.spirit * 15, char.max_chi - char.current_chi)
+    
+    char.current_hp = min(char.max_hp, char.current_hp + hp_restore)
+    char.current_chi = min(char.max_chi, char.current_chi + chi_restore)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'hp_restored': hp_restore,
+        'chi_restored': chi_restore,
+        'character': {
+            'id': char.id,
+            'hp': char.current_hp,
+            'max_hp': char.max_hp,
+            'chi': char.current_chi,
+            'max_chi': char.max_chi
+        }
     })
 
 @app.route('/api/start_combat', methods=['POST'])

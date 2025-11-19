@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Five Winds - Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+        
+        .character-info h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .stat-bar {
+            margin-bottom: 15px;
+        }
+        
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .bar {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .hp-bar { background: linear-gradient(90deg, #ff4444, #cc0000); }
+        .chi-bar { background: linear-gradient(90deg, #00d4ff, #0099cc); }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-item strong {
+            color: #00d4ff;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .main-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .zone-info {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .zone-info h2 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        .action-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .action-btn:hover {
+            border-color: #00d4ff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .action-btn strong {
+            display: block;
+            color: #00d4ff;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+        }
+        
+        .action-btn p {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .log-area {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .log-area div {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #00d4ff;
+            padding-left: 10px;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #00d4ff, #ff00ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            grid-column: 1 / -1;
+        }
+        
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ Five Winds ⚔️</h1>
+        
+        <div class="sidebar">
+            <a href="/" class="btn-back">← Back to Characters</a>
+            <div class="character-info">
+                <h2 id="charName">Loading...</h2>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>Health</span>
+                        <span id="hpText">0/0</span>
+                    </div>
+                    <div class="bar">
+                        <div class="bar-fill hp-bar" id="hpBar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>Chi</span>
+                        <span id="chiText">0/0</span>
+                    </div>
+                    <div class="bar">
+                        <div class="bar-fill chi-bar" id="chiBar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <strong>Level</strong>
+                        <span id="levelText">1.1</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Gold</strong>
+                        <span id="goldText">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Body</strong>
+                        <span id="bodyText">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Spirit</strong>
+                        <span id="spiritText">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Flow</strong>
+                        <span id="flowText">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Defense</strong>
+                        <span id="defenseText">10</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="zone-info">
+                <h2 id="zoneName">Loading Zone...</h2>
+                <p id="zoneDesc">Zone description will appear here.</p>
+            </div>
+            
+            <h3 style="color: #00d4ff; margin-bottom: 15px;">What do you want to do?</h3>
+            <div class="action-menu">
+                <div class="action-btn" onclick="hunt()">
+                    <strong>🎯 Hunt</strong>
+                    <p>Seek out enemies to battle and gain experience</p>
+                </div>
+                <div class="action-btn" onclick="explore()">
+                    <strong>🔍 Explore</strong>
+                    <p>Search the area for items and secrets</p>
+                </div>
+                <div class="action-btn" onclick="meditate()">
+                    <strong>🧘 Meditate</strong>
+                    <p>Restore your Chi and heal your wounds</p>
+                </div>
+                <div class="action-btn" onclick="travel()">
+                    <strong>🗺️ Travel</strong>
+                    <p>Move to a different zone</p>
+                </div>
+            </div>
+            
+            <div class="log-area" id="gameLog">
+                <div>Welcome to Five Winds. Choose an action to begin your journey...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let character = null;
+        let currentZone = null;
+        
+        async function loadCharacter() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const charId = urlParams.get('character');
+            
+            if (!charId) {
+                window.location.href = '/';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/character/${charId}`);
+                if (!response.ok) {
+                    throw new Error('Character not found');
+                }
+                
+                character = await response.json();
+                renderCharacter();
+                loadZone(character.current_zone_id);
+            } catch (error) {
+                addLog('Error loading character: ' + error.message);
+                setTimeout(() => window.location.href = '/', 2000);
+            }
+        }
+        
+        function renderCharacter() {
+            document.getElementById('charName').textContent = character.name;
+            document.getElementById('hpText').textContent = `${character.hp}/${character.max_hp}`;
+            document.getElementById('chiText').textContent = `${character.chi}/${character.max_chi}`;
+            document.getElementById('levelText').textContent = `${character.level}.${character.sub_level}`;
+            document.getElementById('goldText').textContent = character.gold;
+            document.getElementById('bodyText').textContent = character.body;
+            document.getElementById('spiritText').textContent = character.spirit;
+            document.getElementById('flowText').textContent = character.flow;
+            document.getElementById('defenseText').textContent = character.defense;
+            
+            const hpPercent = (character.hp / character.max_hp) * 100;
+            const chiPercent = (character.chi / character.max_chi) * 100;
+            document.getElementById('hpBar').style.width = hpPercent + '%';
+            document.getElementById('chiBar').style.width = chiPercent + '%';
+        }
+        
+        async function loadZone(zoneId) {
+            try {
+                const response = await fetch(`/api/zone/${zoneId}`);
+                currentZone = await response.json();
+                
+                document.getElementById('zoneName').textContent = currentZone.name;
+                document.getElementById('zoneDesc').textContent = currentZone.description;
+            } catch (error) {
+                addLog('Error loading zone: ' + error.message);
+            }
+        }
+        
+        function addLog(message) {
+            const log = document.getElementById('gameLog');
+            const entry = document.createElement('div');
+            entry.textContent = message;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function hunt() {
+            addLog('🎯 You search for enemies...');
+            // Navigate to combat
+            window.location.href = `/combat?character=${character.id}`;
+        }
+        
+        function explore() {
+            addLog('🔍 You explore the area... (Feature coming soon)');
+        }
+        
+        async function meditate() {
+            addLog('🧘 You sit down and begin to meditate...');
+            
+            try {
+                const response = await fetch('/api/meditate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ character_id: character.id })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    character = data.character;
+                    renderCharacter();
+                    addLog(`✨ You feel refreshed. HP: ${data.hp_restored}, Chi: ${data.chi_restored}`);
+                }
+            } catch (error) {
+                addLog('Meditation failed: ' + error.message);
+            }
+        }
+        
+        function travel() {
+            addLog('🗺️ Travel system coming soon...');
+        }
+        
+        // Initialize
+        loadCharacter();
+    </script>
+</body>
+</html>
