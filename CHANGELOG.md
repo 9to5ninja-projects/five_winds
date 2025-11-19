@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Epithet system for character titles
 - Quest tracking system
 - Proper model relationships and foreign keys
+- Database initialization script (init_db.py) with PostgreSQL to SQLite conversion
+- Character creation API endpoint (`/api/character/create`)
+  - Name uniqueness validation
+  - Role stat bonus application
+  - Starting zone assignment
+  - Derived stat calculation
+- Clans listing API endpoint (`/api/clans`)
+  - Returns all clans with nested role information
+  - Includes faction and description data
+
+### Fixed
+- Added missing stat bonus columns to roles table (body_bonus, spirit_bonus, flow_bonus)
+- Resolved database file location issue (Flask instance/ folder)
 
 ## [0.1.0] - 2025-11-18
 
