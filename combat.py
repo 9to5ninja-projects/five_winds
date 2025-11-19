@@ -96,7 +96,7 @@ class Combat:
             skill = None
             if self.character_skills:
                 for char_skill in self.character_skills:
-                    if char_skill.is_equipped and char_skill.skill.is_active:
+                    if char_skill.hotbar_slot and char_skill.skill.is_active:
                         skill = char_skill.skill
                         break
             

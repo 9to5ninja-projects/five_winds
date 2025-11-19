@@ -97,7 +97,8 @@ def create_character():
             skill_id=skill.id,
             skill_level=1,
             experience=0,
-            is_equipped=True
+            hotbar_slot=1,  # Equip to first hotbar slot
+            hotbar_page=1
         )
         db.session.add(char_skill)
     
