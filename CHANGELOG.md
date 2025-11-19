@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Role stat bonus application
   - Starting zone assignment
   - Derived stat calculation
+  - **Auto-learns starting skills based on clan/role**
 - Clans listing API endpoint (`/api/clans`)
   - Returns all clans with nested role information
   - Includes faction and description data
@@ -50,11 +51,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `/api/character/<id>` - Get character details
   - `/api/zone/<id>` - Get zone information
   - `/api/meditate` - Restore HP/Chi based on Spirit stat
+- **Real Skills Combat System**
+  - Characters auto-learn starting skills on creation
+  - Skills equipped to hotbar slots (slot 1 used in combat)
+  - Combat uses character's equipped skills instead of generic attacks
+  - Chi consumption based on skill costs
+  - Damage scaling: kung_fu uses Body stat, chi_kung uses Spirit stat
+  - Skill names displayed in combat log
+  - Chi usage tracked and displayed
+- **Zone-Based Enemy Spawning**
+  - Enemies spawn from zone's enemy pool with weighted random selection
+  - Boss enemies excluded from random spawns
+  - Fallback to level-appropriate enemies if zone has no assigned enemies
+  - Enemies created from EnemyTemplate with proper stats
+- **Combat Progression System**
+  - Victory awards XP and gold from defeated enemies
+  - Simplified leveling: 100 XP per level
+  - Automatic level up when XP threshold reached
+  - Stats recalculated on level up
+  - Victory screen shows rewards (XP, Gold, Level Up notification)
+  - Defeat screen with return option
+  - Combat auto-starts when clicking Hunt
+  - Return to game link after combat ends
 
 ### Fixed
 - Added missing stat bonus columns to roles table (body_bonus, spirit_bonus, flow_bonus)
 - Resolved database file location issue (Flask instance/ folder)
 - Updated index route to render new character selection interface
+- Fixed Zone model attribute names (recommended_level_min/max)
+- Fixed CharacterSkill to use hotbar_slot instead of is_equipped
 
 ### Technical Improvements
 - Modular route structure with separate handlers for /, /game, /combat
@@ -62,6 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Client-side JavaScript for dynamic UI updates
 - CSS Grid and Flexbox for responsive layouts
 - Gradient backgrounds and smooth transitions
+- Weighted random selection algorithm for enemy spawning
+- Template-based enemy instantiation system
 
 ## [0.1.0] - 2025-11-18
 
