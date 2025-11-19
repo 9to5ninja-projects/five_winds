@@ -1,0 +1,51 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Flask
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+server.log
+server.err
+
+# Secrets
+.env
+*.pem
+*.key
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Documentation temp files
+pdf_content.txt

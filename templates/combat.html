@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>9 Dragons Combat</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #f0e68c;
+            font-family: monospace;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        .health-bar {
+            background: #333;
+            height: 30px;
+            border: 2px solid #666;
+            position: relative;
+            margin: 10px 0;
+        }
+        .health-fill {
+            background: #ff0000;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .combat-log {
+            background: #2a2a2a;
+            border: 2px solid #666;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #3a3a3a;
+            border: 2px solid #666;
+            color: #f0e68c;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        button:hover { background: #4a4a4a; }
+        
+        .rage { color: #ff4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ 9 Dragons Combat</h1>
+        
+        <div id="character-status">
+            <h2>You <span id="rage-indicator" class="rage"></span></h2>
+            <div class="health-bar">
+                <div class="health-fill" id="char-hp-bar" style="width: 100%"></div>
+                <span style="position: absolute; left: 10px; top: 5px;">
+                    HP: <span id="char-hp">100/100</span>
+                </span>
+            </div>
+            <p>Wounds: <span id="wounds">0</span></p>
+        </div>
+        
+        <div id="enemy-status">
+            <h2 id="enemy-name">Enemy</h2>
+            <div class="health-bar">
+                <div class="health-fill" id="enemy-hp-bar" style="width: 100%"></div>
+                <span style="position: absolute; left: 10px; top: 5px;">
+                    HP: <span id="enemy-hp">0/0</span>
+                </span>
+            </div>
+        </div>
+        
+        <div class="combat-log" id="log"></div>
+        
+        <div id="actions">
+            <button onclick="startCombat()">Start Combat</button>
+            <button onclick="attack()">Attack</button>
+            <button onclick="defend()">Defend</button>
+        </div>
+    </div>
+    
+    <script>
+        let combatActive = false;
+        
+        async function startCombat() {
+            const res = await fetch('/api/start_combat', { method: 'POST' });
+            const data = await res.json();
+            combatActive = true;
+            updateUI(data.state);
+        }
+        
+        async function attack() {
+            if (!combatActive) return;
+            const res = await fetch('/api/combat_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'attack' })
+            });
+            const state = await res.json();
+            updateUI(state);
+        }
+        
+        async function defend() {
+            if (!combatActive) return;
+            const res = await fetch('/api/combat_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'defend' })
+            });
+            const state = await res.json();
+            updateUI(state);
+        }
+        
+        function updateUI(state) {
+            // Character HP
+            const charHpPercent = (state.character_hp / state.character_max_hp) * 100;
+            document.getElementById('char-hp-bar').style.width = charHpPercent + '%';
+            document.getElementById('char-hp').textContent = 
+                `${state.character_hp}/${state.character_max_hp}`;
+            
+            // Enemy HP
+            const enemyHpPercent = (state.enemy_hp / state.enemy_max_hp) * 100;
+            document.getElementById('enemy-hp-bar').style.width = enemyHpPercent + '%';
+            document.getElementById('enemy-hp').textContent = 
+                `${state.enemy_hp}/${state.enemy_max_hp}`;
+            document.getElementById('enemy-name').textContent = state.enemy_name;
+            
+            // Wounds & Rage
+            document.getElementById('wounds').textContent = state.wounds;
+            document.getElementById('rage-indicator').textContent = 
+                state.rage_active ? '🔥 RAGE' : '';
+            
+            // Combat log
+            const log = document.getElementById('log');
+            log.innerHTML = state.log.map(msg => `<p>${msg}</p>`).join('');
+            log.scrollTop = log.scrollHeight;
+            
+            // Check end conditions
+            if (state.victory) {
+                log.innerHTML += '<p style="color: #00ff00">⚔️ VICTORY!</p>';
+                combatActive = false;
+            }
+            if (state.defeat) {
+                log.innerHTML += '<p style="color: #ff0000">💀 DEFEAT</p>';
+                combatActive = false;
+            }
+        }
+    </script>
+</body>
+</html>
