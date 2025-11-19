@@ -89,7 +89,12 @@ CREATE TABLE roles (
     name VARCHAR(50) NOT NULL,
     archetype VARCHAR(20), -- 'warrior', 'caster', 'hybrid', 'healer'
     primary_weapon VARCHAR(20), -- 'sword', 'staff', 'dagger', etc
-    description TEXT
+    description TEXT,
+    
+    -- Starting stat bonuses
+    body_bonus INT DEFAULT 0,
+    spirit_bonus INT DEFAULT 0,
+    flow_bonus INT DEFAULT 0
 );
 
 -- ============================================
