@@ -119,9 +119,18 @@
             const res = await fetch('/api/combat_action', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'attack' })
+                body: JSON.stringify({ 
+                    action: 'attack',
+                    character_id: parseInt(characterId)
+                })
             });
             const state = await res.json();
+            
+            if (state.error) {
+                alert(state.error);
+                return;
+            }
+            
             updateUI(state);
         }
         
@@ -130,9 +139,18 @@
             const res = await fetch('/api/combat_action', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'defend' })
+                body: JSON.stringify({ 
+                    action: 'defend',
+                    character_id: parseInt(characterId)
+                })
             });
             const state = await res.json();
+            
+            if (state.error) {
+                alert(state.error);
+                return;
+            }
+            
             updateUI(state);
         }
         

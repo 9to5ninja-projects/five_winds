@@ -8,10 +8,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dragons.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
 
 db.init_app(app)
 
 # In-memory combat sessions (replace with Redis/DB later)
+# Key: character_id, Value: combat instance
 active_combats = {}
 
 @app.route('/')
@@ -264,26 +266,26 @@ def start_combat():
     char_skills = CharacterSkill.query.filter_by(character_id=character.id).all()
     
     combat = Combat(character, enemy, char_skills)
-    combat_id = f"combat_{id(combat)}"
-    active_combats[combat_id] = combat
     
-    session['combat_id'] = combat_id
+    # Use character_id as the key for easier lookup
+    active_combats[character.id] = combat
     
     return jsonify({
-        'combat_id': combat_id,
+        'combat_id': character.id,
         'state': combat.get_state()
     })
 
 @app.route('/api/combat_action', methods=['POST'])
 def combat_action():
     """Execute a combat turn"""
-    combat_id = session.get('combat_id')
+    data = request.json
+    char_id = data.get('character_id')
     
-    if not combat_id or combat_id not in active_combats:
-        return jsonify({'error': 'No active combat'}), 404
+    if not char_id or char_id not in active_combats:
+        return jsonify({'error': 'No active combat for this character'}), 404
     
-    combat = active_combats[combat_id]
-    action = request.json.get('action', 'attack')
+    combat = active_combats[char_id]
+    action = data.get('action', 'attack')
     
     state = combat.execute_turn(action)
     
@@ -310,8 +312,7 @@ def combat_action():
     
     # Clean up finished combats
     if state['victory'] or state['defeat']:
-        del active_combats[combat_id]
-        session.pop('combat_id', None)
+        del active_combats[char_id]
     
     return jsonify(state)
 
