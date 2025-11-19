@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request, session
-from models import db, Character, Enemy, Clan, Role, Skill, Zone, ItemTemplate
+from models import db, Character, Enemy, Clan, Role, Skill, Zone, ItemTemplate, CharacterSkill
 from combat import Combat
 import os
 
@@ -82,6 +82,25 @@ def create_character():
     char.calculate_derived_stats()
     
     db.session.add(char)
+    db.session.flush()  # Get character ID
+    
+    # Learn starting skills for this role
+    starting_skills = Skill.query.filter(
+        Skill.clan_id == clan.id,
+        Skill.role_id == role.id,
+        Skill.unlock_level == 1
+    ).all()
+    
+    for skill in starting_skills:
+        char_skill = CharacterSkill(
+            character_id=char.id,
+            skill_id=skill.id,
+            skill_level=1,
+            experience=0,
+            is_equipped=True
+        )
+        db.session.add(char_skill)
+    
     db.session.commit()
     
     return jsonify({
@@ -144,8 +163,9 @@ def get_zone(zone_id):
         'name': zone.name,
         'description': zone.description,
         'zone_type': zone.zone_type,
-        'min_level': zone.min_level,
-        'max_level': zone.max_level
+        'recommended_level_min': zone.recommended_level_min,
+        'recommended_level_max': zone.recommended_level_max,
+        'is_safe_zone': zone.is_safe_zone
     })
 
 @app.route('/api/meditate', methods=['POST'])
@@ -180,14 +200,25 @@ def meditate():
 @app.route('/api/start_combat', methods=['POST'])
 def start_combat():
     """Initialize a new combat"""
-    # For now, use a test character and enemy
-    character = Character.query.first()
+    data = request.json
+    char_id = data.get('character_id')
+    
+    if char_id:
+        character = Character.query.get_or_404(char_id)
+    else:
+        # Fallback to first character
+        character = Character.query.first()
+    
+    # Get a random enemy from the current zone
     enemy = Enemy.query.first()
     
     if not character or not enemy:
         return jsonify({'error': 'No character or enemy found'}), 404
     
-    combat = Combat(character, enemy)
+    # Load character's equipped skills
+    char_skills = CharacterSkill.query.filter_by(character_id=character.id).all()
+    
+    combat = Combat(character, enemy, char_skills)
     combat_id = f"combat_{id(combat)}"
     active_combats[combat_id] = combat
     

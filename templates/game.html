@@ -348,8 +348,17 @@
         
         function hunt() {
             addLog('🎯 You search for enemies...');
-            // Navigate to combat
-            window.location.href = `/combat?character=${character.id}`;
+            // Start combat with this character
+            fetch('/api/start_combat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ character_id: character.id })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.combat_id) {
+                      window.location.href = `/combat?character=${character.id}`;
+                  }
+              });
         }
         
         function explore() {
