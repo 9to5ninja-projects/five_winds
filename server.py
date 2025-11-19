@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request, session
-from models import db, Character, Enemy
+from models import db, Character, Enemy, Clan, Role, Skill, Zone, ItemTemplate
 from combat import Combat
 import os
 
@@ -16,6 +16,70 @@ active_combats = {}
 @app.route('/')
 def index():
     return render_template('combat.html')
+
+@app.route('/api/clans', methods=['GET'])
+def get_clans():
+    """Get all available clans with their roles."""
+    clans = Clan.query.all()
+    result = []
+    for clan in clans:
+        roles = Role.query.filter_by(clan_id=clan.id).all()
+        result.append({
+            'id': clan.id,
+            'name': clan.name,
+            'faction': clan.faction,
+            'description': clan.description,
+            'roles': [{
+                'id': r.id,
+                'name': r.name,
+                'archetype': r.archetype,
+                'primary_weapon': r.primary_weapon,
+                'description': r.description
+            } for r in roles]
+        })
+    return jsonify(result)
+
+@app.route('/api/character/create', methods=['POST'])
+def create_character():
+    """Create a new character."""
+    data = request.json
+    
+    # Validate required fields
+    if not data.get('name') or not data.get('clan_id') or not data.get('role_id'):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    # Check if name is taken
+    if Character.query.filter_by(name=data['name']).first():
+        return jsonify({'error': 'Character name already exists'}), 400
+    
+    # Get clan and role
+    clan = Clan.query.get(data['clan_id'])
+    role = Role.query.get(data['role_id'])
+    
+    if not clan or not role or role.clan_id != clan.id:
+        return jsonify({'error': 'Invalid clan or role'}), 400
+    
+    # Create character
+    char = Character(
+        name=data['name'],
+        clan_id=clan.id,
+        role_id=role.id,
+        faction=clan.faction,
+        body=10 + (role.body_bonus or 0),
+        spirit=10 + (role.spirit_bonus or 0),
+        flow=10 + (role.flow_bonus or 0),
+        current_zone_id=clan.starting_zone_id
+    )
+    
+    char.calculate_derived_stats()
+    
+    db.session.add(char)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Character created successfully',
+        'character': char.to_dict()
+    })
 
 @app.route('/api/start_combat', methods=['POST'])
 def start_combat():
