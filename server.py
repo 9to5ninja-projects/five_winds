@@ -1,7 +1,8 @@
 from flask import Flask, render_template, jsonify, request, session
-from models import db, Character, Enemy, Clan, Role, Skill, Zone, ItemTemplate, CharacterSkill
+from models import db, Character, Enemy, Clan, Role, Skill, Zone, ItemTemplate, CharacterSkill, EnemyTemplate, ZoneEnemy
 from combat import Combat
 import os
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -210,11 +211,54 @@ def start_combat():
         # Fallback to first character
         character = Character.query.first()
     
-    # Get a random enemy from the current zone
-    enemy = Enemy.query.first()
+    # Get enemies from character's current zone
+    zone_enemies = ZoneEnemy.query.filter_by(
+        zone_id=character.current_zone_id,
+        is_boss=False  # Don't spawn bosses randomly
+    ).all()
     
-    if not character or not enemy:
-        return jsonify({'error': 'No character or enemy found'}), 404
+    if not zone_enemies:
+        # Fallback: Get enemies near character's level
+        all_templates = EnemyTemplate.query.filter(
+            EnemyTemplate.level >= character.level - 2,
+            EnemyTemplate.level <= character.level + 2
+        ).all()
+        
+        if not all_templates:
+            # Ultimate fallback: any enemy
+            all_templates = EnemyTemplate.query.all()
+        
+        if not all_templates:
+            return jsonify({'error': 'No enemies available'}), 404
+        
+        selected_template = random.choice(all_templates)
+    else:
+        # Weighted random selection from zone enemies
+        total_weight = sum(ze.spawn_weight for ze in zone_enemies)
+        rand_val = random.randint(1, total_weight)
+        cumulative = 0
+        selected_template = None
+        
+        for ze in zone_enemies:
+            cumulative += ze.spawn_weight
+            if rand_val <= cumulative:
+                selected_template = ze.enemy
+                break
+        
+        if not selected_template:
+            selected_template = zone_enemies[0].enemy
+    
+    # Create a temporary Enemy instance from the template
+    enemy = Enemy(
+        name=selected_template.name,
+        level=selected_template.level,
+        max_hp=selected_template.hp,
+        attack_power=selected_template.damage_max,
+        defense=selected_template.defense,
+        agility=selected_template.dodge,
+        xp_reward=selected_template.xp_reward,
+        gold_reward=selected_template.gold_min
+    )
     
     # Load character's equipped skills
     char_skills = CharacterSkill.query.filter_by(character_id=character.id).all()
@@ -242,6 +286,27 @@ def combat_action():
     action = request.json.get('action', 'attack')
     
     state = combat.execute_turn(action)
+    
+    # Handle combat completion
+    if state['victory']:
+        # Award XP and gold
+        char = combat.character
+        char.experience += combat.enemy.xp_reward
+        char.gold += combat.enemy.gold_reward
+        
+        # Check for level up (simplified)
+        xp_needed = char.level * 100
+        if char.experience >= xp_needed:
+            char.level += 1
+            char.experience -= xp_needed
+            char.calculate_derived_stats()
+            state['level_up'] = True
+        
+        db.session.commit()
+        state['rewards'] = {
+            'xp': combat.enemy.xp_reward,
+            'gold': combat.enemy.gold_reward
+        }
     
     # Clean up finished combats
     if state['victory'] or state['defeat']:

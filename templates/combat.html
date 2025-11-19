@@ -84,10 +84,32 @@
     
     <script>
         let combatActive = false;
+        let characterId = null;
+        
+        // Get character ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        characterId = urlParams.get('character');
+        
+        // Auto-start combat when page loads
+        window.onload = () => {
+            if (characterId) {
+                startCombat();
+            }
+        };
         
         async function startCombat() {
-            const res = await fetch('/api/start_combat', { method: 'POST' });
+            const res = await fetch('/api/start_combat', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ character_id: parseInt(characterId) })
+            });
             const data = await res.json();
+            
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
             combatActive = true;
             updateUI(data.state);
         }
@@ -140,11 +162,20 @@
             
             // Check end conditions
             if (state.victory) {
-                log.innerHTML += '<p style="color: #00ff00">⚔️ VICTORY!</p>';
+                let victoryMsg = '⚔️ VICTORY!';
+                if (state.rewards) {
+                    victoryMsg += ` +${state.rewards.xp} XP, +${state.rewards.gold} Gold`;
+                }
+                if (state.level_up) {
+                    victoryMsg += ' 🎉 LEVEL UP!';
+                }
+                log.innerHTML += `<p style="color: #00ff00">${victoryMsg}</p>`;
+                log.innerHTML += `<p><a href="/game?character=${characterId}" style="color: #00d4ff">Return to game</a></p>`;
                 combatActive = false;
             }
             if (state.defeat) {
                 log.innerHTML += '<p style="color: #ff0000">💀 DEFEAT</p>';
+                log.innerHTML += `<p><a href="/game?character=${characterId}" style="color: #00d4ff">Return to game</a></p>`;
                 combatActive = false;
             }
         }
