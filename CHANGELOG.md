@@ -25,10 +25,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clans listing API endpoint (`/api/clans`)
   - Returns all clans with nested role information
   - Includes faction and description data
+- **Main Game Interface (`/` - index.html)**
+  - Beautiful character selection screen
+  - Responsive grid layout for character cards
+  - Visual display of character stats (HP, Chi, Level, etc.)
+  - "Create New Character" button with form toggle
+  - Character creation wizard with clan and role selection
+  - Interactive clan cards with faction badges (Imperial/Free)
+  - Role selection with archetype and description display
+  - Gradient UI theme with cyberpunk aesthetic
+- **Game View (`/game` - game.html)**
+  - Character stats sidebar with HP/Chi bars
+  - Live stat display (Body, Spirit, Flow, Defense, Gold)
+  - Zone information panel
+  - Action menu with four core actions:
+    - Hunt - initiate combat
+    - Explore - search for items (coming soon)
+    - Meditate - restore HP and Chi
+    - Travel - zone navigation (coming soon)
+  - Game log with scrollable history
+  - Responsive two-column layout
+- **New API Endpoints**
+  - `/api/characters` - List all characters
+  - `/api/character/<id>` - Get character details
+  - `/api/zone/<id>` - Get zone information
+  - `/api/meditate` - Restore HP/Chi based on Spirit stat
 
 ### Fixed
 - Added missing stat bonus columns to roles table (body_bonus, spirit_bonus, flow_bonus)
 - Resolved database file location issue (Flask instance/ folder)
+- Updated index route to render new character selection interface
+
+### Technical Improvements
+- Modular route structure with separate handlers for /, /game, /combat
+- RESTful API design for character and zone management
+- Client-side JavaScript for dynamic UI updates
+- CSS Grid and Flexbox for responsive layouts
+- Gradient backgrounds and smooth transitions
 
 ## [0.1.0] - 2025-11-18
 
